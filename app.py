@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, request
 
-from utility import logger
+from utility import *
 
 
 app = Flask(__name__)
@@ -15,7 +15,13 @@ def home():
 
 @app.route('/imports', methods=["POST"])
 def imports():
-    pass
+    data = request.get_json()
+    for item in data["items"]:
+        node = ""
+        if item["type"] == FOLDER:
+            node = Folder(item["id"], item["parentId"], data["updateDate"])
+
+    return "Success"
 
 
 @app.route('/delete/{id}', methods=["DELETE"])

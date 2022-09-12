@@ -29,9 +29,9 @@ class File(Node):
 
 
 class Folder(Node):
-    def __init__(self, id: str, url: str, parent_id: str, size: int, update_date: str, files: typing.Dict[str, Node]):
-        super().__init__(id, url, parent_id, size, update_date)
-        self.children = files  # id: node
+    def __init__(self, id: str, parent_id: str, update_date: str):
+        super().__init__(id, "", parent_id, 0, update_date)
+        self.children = []  # id: node
 
     def __del__(self):
         for _ in self.children.values():
