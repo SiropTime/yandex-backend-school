@@ -1,3 +1,4 @@
+import flask
 from flask import Flask, request, abort, Response
 from flask_sqlalchemy import SQLAlchemy
 
@@ -32,22 +33,29 @@ class FileDB(db.Model):
 
 def on_init():
     results = FileDB.query.all()
-    logger.info(results)
+    for item in results:
+        parent_node.children[item.id] = File(item.id, item.url, item.parent_id, item.size, item.update_date) \
+            if item.type == FILE else Folder(item.id, item.parent_id, item.update_date)
 
 
 @app.route('/')
 def home():
     logger.info("Successfully got the request")
-    return 'Test'
+    return flask.render_template('index.html')
 
 
 @app.route('/imports', methods=["POST"])
 def imports():
     data = request.get_json()
+    current_items = []
     try:
         current_items = data["items"]
     except KeyError as ex:
-        return abort(Response("Validation failed. There is no items in JSON", 400))
+        try:
+            for r in data:
+                current_items += r["items"]
+        except KeyError as ex:
+            return abort(Response("Validation failed. There is no items in JSON", 400))
 
     for item in current_items:
         node = None
@@ -69,10 +77,12 @@ def imports():
             except KeyError as ex:
                 return abort(Response(f"Validation failed. '{ex.args[0]}' is required", 400))
 
-            node.children = dict([(n["id"], n) for n in filter(lambda d: d["parentId"] == node.id, current_items)])
+            node.children = dict([(n["id"], File(n["id"], n["url"], n["parentId"], n["size"], data["updateDate"]
+            if n["type"] == FILE else Folder(n["id"], n["parentId"], data["updateDate"]))) for n in
+                                  filter(lambda d: d["parentId"] == node.id, current_items)])
             logger.info(node.children)
             parent_node.children[item["id"]] = node
-            db.session.add(FileDB(node.id, FOLDER, node.url, node.parent_id, node.size, node.update_date))
+            db.session.add(FileDB(node.id, FOLDER, node.url, node.parent_id, node.get_size(), node.update_date))
 
         elif item["type"] == FILE:
             try:
@@ -98,10 +108,16 @@ def delete(id: str):
         return abort(Response("Validation failed"), 400)
 
     try:
+        FileDB.query.filter(FileDB.id == id).delete()
+        for i in parent_node.children[id].children.keys():
+            FileDB.query.filter(FileDB.id == i).delete()
         del parent_node.children[id]
+        db.session.commit()
         logger.info(f"Succesfully deleted item with id {id}")
     except KeyError as ex:
         return abort(Response("Item not found", 404))
+
+    return Response("", 200)
 
 
 @app.route('/nodes/<id>', methods=["GET"])
@@ -117,4 +133,3 @@ def updates():
 @app.route('/node/<id>/history', methods=["GET"])
 def node_history(id: str):
     pass
-
