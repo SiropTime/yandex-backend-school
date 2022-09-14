@@ -17,13 +17,15 @@ def home():
 @app.route('/imports', methods=["POST"])
 def imports():
     data = request.get_json()
-    for item in data["items"]:
+    current_items = data["items"]
+    for item in current_items:
         node = ""
         if item["type"] == FOLDER:
             node = Folder(item["id"], item["parentId"], data["updateDate"])
             parent_node.children[item["id"]] = node
         elif item["type"] == FILE:
-            pass
+            node = File(item["id"], item["url"], item["parentId"], item["size"], data["updateDate"])
+            parent_node.children[item["id"]] = node
 
     return "Success"
 
