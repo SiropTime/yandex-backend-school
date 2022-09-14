@@ -19,6 +19,12 @@ class Node:
         self.size = size
         self.update_date = datetime.datetime.strptime(update_date, "%Y-%m-%dT%H:%M:%S.%f")
 
+    def get_information(self) -> dict:
+        pass
+
+    def get_size(self) -> int:
+        pass
+
 
 class File(Node):
     def __init__(self, id: str, url: str, parent_id: str, size: int, update_date: str):
@@ -26,6 +32,13 @@ class File(Node):
 
     def __del__(self):
         logger.info("Deleted file with id: " + self.id)
+
+    def get_information(self) -> dict:
+        return {"update_date": self.update_date, "size": self.size, "parent_id": self.parent_id}
+
+    def get_size(self) -> int:
+        return self.size
+    
 
 
 class Folder(Node):
@@ -37,3 +50,9 @@ class Folder(Node):
         for _ in self.children.values():
             del _
         logger.info("Deleted folder with id: " + self.id)
+
+    def get_size(self) -> int:
+        return sum([item.get_size() for item in self.children.values()])
+
+    def get_information(self) -> dict:
+        return {"update_date": self.update_date, "size": self.get_size(), "parent_id": self.parent_id}
