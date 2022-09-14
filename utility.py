@@ -3,14 +3,17 @@ import sys
 import datetime
 import typing
 
+# Logging setup
 logger = logging.getLogger('__main__')
 handler = logging.StreamHandler(stream=sys.stdout)
 logging.basicConfig(format='[%(asctime)s %(levelname)s]:%(message)s', handlers=[handler], level=logging.DEBUG)
 
+# Constants
 FILE, FOLDER = "FILE", "FOLDER"
 TYPES = [FILE, FOLDER]
 
 
+# Parent class for all types
 class Node:
     def __init__(self, id: str, url: str, parent_id: str, size: int, update_date: str):
         self.id = id
@@ -56,3 +59,8 @@ class Folder(Node):
 
     def get_information(self) -> dict:
         return {"update_date": self.update_date, "size": self.get_size(), "parent_id": self.parent_id}
+
+
+# Get all input nodes and sort them to given parent
+def find_and_add_children(nodes: typing.Dict[str, Node], parent: Node):
+    pass
