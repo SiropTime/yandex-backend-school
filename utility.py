@@ -6,7 +6,7 @@ import typing
 # Logging setup
 logger = logging.getLogger('__main__')
 handler = logging.StreamHandler(stream=sys.stdout)
-logging.basicConfig(format='[%(asctime)s %(levelname)s]:%(message)s', handlers=[handler], level=logging.DEBUG)
+logging.basicConfig(format='[%(asctime)s %(levelname)s]: %(message)s', handlers=[handler], level=logging.DEBUG)
 
 # Constants
 FILE, FOLDER = "FILE", "FOLDER"
@@ -20,7 +20,7 @@ class Node:
         self.url = url
         self.parent_id = parent_id
         self.size = size
-        self.update_date = datetime.datetime.strptime(update_date, "%Y-%m-%dT%H:%M:%S.%f")
+        self.update_date = update_date  # datetime.datetime.strptime(update_date, "%Y-%m-%dT%H:%M:%S.%f")
 
     def get_information(self) -> dict:
         pass
@@ -34,6 +34,7 @@ class File(Node):
         super().__init__(id, url, parent_id, size, update_date)
 
     def __del__(self):
+        print(self.id)
         logger.info("Deleted file with id: " + self.id)
 
     def get_information(self) -> dict:
@@ -43,15 +44,14 @@ class File(Node):
         return self.size
     
 
-
 class Folder(Node):
     def __init__(self, id: str, parent_id: str, update_date: str):
         super().__init__(id, "", parent_id, 0, update_date)
-        self.children = []  # id: node
+        self.children = dict()  # id: node
 
     def __del__(self):
-        for _ in self.children.values():
-            del _
+        for node in self.children.values():
+            del node
         logger.info("Deleted folder with id: " + self.id)
 
     def get_size(self) -> int:
